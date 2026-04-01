@@ -23,12 +23,19 @@ El sistema entrega diagnóstico preciso y recomendaciones estratégicas en segun
 
 ## Estructura del Proyecto
 ├── main.py                     # Script principal (recomendado)
+
 ├── rf_madurez.py               # Módulo de predicción Random Forest
+
 ├── requirements.txt
+
 ├── data/                       # Archivos de ejemplo
+
 ├── models/                     # ← Descargar modelo aquí
+
 ├── outputs/                    # Resultados generados
+
 ├── notebooks/                  # Notebooks de desarrollo
+
 └── REFLEXION.md
 
 ## Requisitos
