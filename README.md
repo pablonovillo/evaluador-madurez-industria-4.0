@@ -4,12 +4,9 @@
 
 ## Descripción del Proyecto
 
-Este sistema permite evaluar el nivel de madurez en **Industria 4.0** de una PyME ecuatoriana mediante 13 preguntas distribuidas en tres dimensiones clave: **Tecnología**, **Producto** y 
-El prototipo combina técnicas de inteligencia artificial para entregar un diagnóstico preciso y una hoja de ruta accionable.
+Este sistema permite evaluar el nivel de madurez en **Industria 4.0** de una PyME ecuatoriana a través de 13 preguntas distribuidas en tres dimensiones: **Tecnología**, **Producto** y **Cliente**.
 
-
-### Objetivo
-Proporcionar a las PyMEs ecuatorianas un diagnóstico rápido, interpretable y accionable para guiar su transformación digital hacia la Industria 4.0.
+El prototipo entrega un diagnóstico preciso y una **hoja de ruta personalizada** con recomendaciones accionables.
 
 ### Pipeline del Sistema
 
@@ -25,25 +22,23 @@ graph TD
 
 ## Flujo principal:
 
-Random Forest → Predice el nivel de madurez (Inicial, Moderado, Medio, Avanzado) en cada dimensión y calcula un nivel final ponderado.
+1. Random Forest → Predice el nivel de madurez en cada dimensión y calcula un nivel final ponderado (40% Tecnología + 35% Producto + 25% Cliente).
+2. Clustering → Agrupa las PyMEs según su perfil de madurez similar para ofrecer recomendaciones más precisas por grupo.
+3. ISM (Interpretive Structural Modeling) → Genera una hoja de ruta jerárquica con niveles recomendados, prioridades y variables driver (las más influyentes para avanzar).
 
-Clustering → Agrupa las PyMEs según su perfil de madurez similar (para generar recomendaciones más precisas por grupo).
-
-ISM (Interpretive Structural Modeling) → Genera una hoja de ruta jerárquica con prioridades, niveles recomendados y variables driver (las más influyentes para avanzar).
+## Objetivo
+Proporcionar a las PyMEs ecuatorianas un diagnóstico rápido, interpretable y accionable para guiar su transformación digital hacia la Industria 4.0.
 
 ## Características Principales
 
-- Diagnóstico rápido y reproducible
-- Nivel final ponderado (40% Tecnología + 35% Producto + 25% Cliente)
-- Agrupación mediante Clustering de PyMEs con perfiles similares
+- Predicción de madurez por dimensión y nivel global ponderado
+- Agrupación de PyMEs mediante Clustering
 - Hoja de ruta ISM con niveles jerárquicos y drivers clave
-- Generación automática de reporte PDF profesional
+- Generación automática de reporte PDF profesional (resultados + gráficos + recomendaciones)
 - Interfaz simple por consola
-- Resultados guardados en carpeta `OUTPUTS/`
 - Código modular, limpio y reproducible
 
-
-## Estructura del Proyecto
+Estructura del Proyecto
 ```text
 1_TESIS_IA_UDLA/
 ├── main.py                          # Script principal
@@ -54,8 +49,6 @@ ISM (Interpretive Structural Modeling) → Genera una hoja de ruta jerárquica c
 ├── OUTPUTS/                         # Resultados generados (CSV y PDF)
 ├── NOTEBOOKS/
 │   └── Recomendacion.ipynb          # Clustering, desarrollo y validación
-├── docs/
-│   └── README.md
 ├── requirements.txt
 └── README.md
 ```
@@ -93,15 +86,11 @@ pip install -r requirements.txt
 python main.py
 ```
 ## Salida del Sistema
-Al finalizar la ejecución se genera automáticamente:
-
-Consola: Resultados de madurez + hoja de ruta textual
-
-Archivos en OUTPUTS/:
-
-diagnostico_YYYYMMDD_HHMMSS.csv
-
-diagnostico_YYYYMMDD_HHMMSS.pdf ← Reporte completo con gráficos ISM y recomendaciones
+Al ejecutar el prototipo se genera automáticamente:
+- Consola: Resultados de madurez + hoja de ruta textual
+- Archivos en carpeta OUTPUTS/:
+    - diagnostico_YYYYMMDD_HHMMSS.csv
+    - diagnostico_YYYYMMDD_HHMMSS.pdf ← Reporte completo con gráficos ISM y recomendaciones
 
 
 ## Tecnologías Utilizadas
@@ -113,10 +102,10 @@ diagnostico_YYYYMMDD_HHMMSS.pdf ← Reporte completo con gráficos ISM y recomen
 - Reportes: PDF profesional
 
 ## Validación Técnica
-
-- Modelo entrenado con 276 respuestas reales de PyMEs
-- Validación cruzada y métricas de desempeño disponibles en NOTEBOOKS/
+- Modelo entrenado con 276 respuestas reales de PyMEs ecuatorianas
+- Validación cruzada y métricas de desempeño disponibles en NOTEBOOKS/Recomendacion.ipynb
 - ISM implementado con matriz SSIM → IRM → FRM → Level Partitioning
+- Clustering aplicado para agrupar perfiles similares
 
 
 ## Autores:
