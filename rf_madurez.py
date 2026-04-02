@@ -1,83 +1,115 @@
-import numpy as np
-import joblib
 import os
+import sys
+import pandas as pd
+from datetime import datetime
 
-def rf_predict(answers_dict):
-    """
-    Predice los niveles de madurez usando los modelos Random Forest.
-    Devuelve las 3 dimensiones + Nivel_Final (calculado como promedio ponderado).
-    """
-    mapping = {
-        'A.1.1': 'Puntaje_Dim1_Q1', 'A.1.2': 'Puntaje_Dim1_Q2', 'A.1.3': 'Puntaje_Dim1_Q3',
-        'A.1.4': 'Puntaje_Dim1_Q4', 'A.2.1': 'Puntaje_Dim1_Q5', 'A.2.2': 'Puntaje_Dim1_Q6',
-        'B.1.1': 'Puntaje_Dim2_Q1', 'B.1.2': 'Puntaje_Dim2_Q2', 'B.1.3': 'Puntaje_Dim2_Q3',
-        'B.1.4': 'Puntaje_Dim2_Q4',
-        'C.1.1': 'Puntaje_Dim3_Q1', 'C.1.2': 'Puntaje_Dim3_Q2', 'C.1.3': 'Puntaje_Dim3_Q3'
-    }
+# ====================== IMPORTAR PREDICTOR ======================
+try:
+    from rf_madurez import rf_predict
+    print("✅ Módulo rf_madurez.py cargado correctamente")
+except ImportError as e:
+    print(f"❌ Error al importar rf_madurez.py: {e}")
+    sys.exit(1)
 
-    feature_order = [
-        'Puntaje_Dim1_Q1', 'Puntaje_Dim1_Q2', 'Puntaje_Dim1_Q3', 'Puntaje_Dim1_Q4',
-        'Puntaje_Dim1_Q5', 'Puntaje_Dim1_Q6',
-        'Puntaje_Dim2_Q1', 'Puntaje_Dim2_Q2', 'Puntaje_Dim2_Q3', 'Puntaje_Dim2_Q4',
-        'Puntaje_Dim3_Q1', 'Puntaje_Dim3_Q2', 'Puntaje_Dim3_Q3'
-    ]
-
-    # Construir vector de características
-    features = [answers_dict.get(next((k for k, v in mapping.items() if v == feat), None), 1) 
-                for feat in feature_order]
-
-    X_input = np.array(features).reshape(1, -1)
-
-    # Ruta del modelo
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    model_path = os.path.join(base_dir, 'MODELS', 'rf_madurez_models.joblib')
-
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(
-            f"❌ Modelo no encontrado en:\n{model_path}\n\n"
-            "→ Verifica que rf_madurez_models.joblib esté dentro de la carpeta MODELS"
-        )
-
-    models = joblib.load(model_path)
-
-    level_map = {1: "Inicial", 2: "Moderado", 3: "Medio", 4: "Avanzado"}
-    text_map = {"Inicial": 1, "Moderado": 2, "Medio": 3, "Avanzado": 4}
-
-    # Función segura para obtener el nivel (maneja texto o número)
-    def get_level(pred):
-        if isinstance(pred, str):
-            return text_map.get(pred.strip(), 2)   # default Moderado si falla
-        else:
-            return int(pred)
-
-    # Predicciones
-    pred_dim1 = get_level(models['dim1_nivel'].predict(X_input)[0])
-    pred_dim2 = get_level(models['dim2_nivel'].predict(X_input)[0])
-    pred_dim3 = get_level(models['dim3_nivel'].predict(X_input)[0])
-
-    # Nivel_Final: Promedio ponderado simple (puedes ajustar los pesos si quieres)
-    nivel_final_num = round((pred_dim1 * 0.4) + (pred_dim2 * 0.3) + (pred_dim3 * 0.3))
-    nivel_final_num = max(1, min(4, nivel_final_num))   # asegurar que esté entre 1 y 4
-
-    return {
-        'Tecnologia': (pred_dim1, level_map[pred_dim1]),
-        'Producto':   (pred_dim2, level_map[pred_dim2]),
-        'Cliente':    (pred_dim3, level_map[pred_dim3]),
-        'Nivel_Final': (nivel_final_num, level_map[nivel_final_num])
-    }
+print("=" * 85)
+print("   EVALUADOR DE MADUREZ INDUSTRIA 4.0 - PyMEs ECUATORIANAS")
+print("=" * 85)
+print("   Random Forest → Diagnóstico + Nivel Final\n")
 
 
-# ==================== PRUEBA RÁPIDA ====================
-if __name__ == "__main__":
-    print("✅ rf_madurez.py cargado correctamente (versión con Nivel_Final)\n")
+def main():
+    print("¿Cómo deseas ingresar las respuestas?")
+    print("1. Manualmente (13 preguntas)")
+    print("2. Usar ejemplo predefinido")
     
-    ejemplo = {
+    opcion = input("\nElige una opción (1 o 2): ").strip()
+
+    if opcion == "1":
+        answers = obtener_respuestas_manual()
+    else:
+        answers = obtener_respuestas_ejemplo()
+
+    print("\n🔄 Procesando diagnóstico con IA...\n")
+
+    try:
+        resultado = rf_predict(answers)
+
+        print("\n" + "=" * 80)
+        print("📊 RESULTADOS DE MADUREZ")
+        print("=" * 80)
+
+        for dim, (nivel_num, nivel_texto) in resultado.items():
+            if dim == "Nivel_Final":
+                print(f"{'NIVEL FINAL':<15} → Nivel {nivel_num} | {nivel_texto}  ← Madurez general")
+            else:
+                print(f"{dim.upper():<15} → Nivel {nivel_num} | {nivel_texto}")
+
+        print("=" * 80)
+
+        # Hoja de ruta simplificada
+        print("\n📋 RECOMENDACIONES PRIORITARIAS")
+        print("-" * 60)
+        print("Enfócate primero en completar el nivel actual de cada dimensión.\n")
+
+        for dim, (nivel_num, _) in resultado.items():
+            if dim == "Nivel_Final":
+                continue
+            siguiente = min(nivel_num + 1, 4)
+            print(f"→ {dim.upper():<12} (Nivel actual: {nivel_num})")
+            print(f"   Recomendación: Avanzar hacia el Nivel {siguiente}")
+            print()
+
+        # Guardar resultado
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_dir = "OUTPUTS"
+        os.makedirs(output_dir, exist_ok=True)
+
+        df_result = pd.DataFrame({
+            "Dimensión": list(resultado.keys()),
+            "Nivel": [v[0] for v in resultado.values()],
+            "Descripción": [v[1] for v in resultado.values()]
+        })
+
+        csv_path = os.path.join(output_dir, f"diagnostico_{timestamp}.csv")
+        df_result.to_csv(csv_path, index=False, encoding='utf-8-sig')
+
+        print(f"✅ Resultado guardado en: {csv_path}")
+
+    except Exception as e:
+        print(f"❌ Error durante la ejecución: {e}")
+
+
+def obtener_respuestas_manual():
+    print("\nIngresa las respuestas (1 a 4):\n")
+    questions = {
+        'A.1.1': 'Tecnología Q1', 'A.1.2': 'Tecnología Q2', 'A.1.3': 'Tecnología Q3',
+        'A.1.4': 'Tecnología Q4', 'A.2.1': 'Tecnología Q5', 'A.2.2': 'Tecnología Q6',
+        'B.1.1': 'Producto Q1', 'B.1.2': 'Producto Q2', 'B.1.3': 'Producto Q3',
+        'B.1.4': 'Producto Q4',
+        'C.1.1': 'Cliente Q1', 'C.1.2': 'Cliente Q2', 'C.1.3': 'Cliente Q3'
+    }
+    answers = {}
+    for code, desc in questions.items():
+        while True:
+            try:
+                val = int(input(f"  {code} ({desc}): "))
+                if 1 <= val <= 4:
+                    answers[code] = val
+                    break
+                print("  → Ingresa un número entre 1 y 4")
+            except:
+                print("  → Ingresa solo números")
+    return answers
+
+
+def obtener_respuestas_ejemplo():
+    print("Usando ejemplo predefinido...")
+    return {
         'A.1.1': 3, 'A.1.2': 2, 'A.1.3': 4, 'A.1.4': 3, 'A.2.1': 2, 'A.2.2': 3,
         'B.1.1': 1, 'B.1.2': 2, 'B.1.3': 1, 'B.1.4': 2,
         'C.1.1': 2, 'C.1.2': 3, 'C.1.3': 2
     }
-    
-    resultado = rf_predict(ejemplo)
-    print("Resultado de prueba:")
-    for key, (num, texto) in resultado.items():
-        print(f"• {key:12}: Nivel {num} → {texto}")
+
+
+if __name__ == "__main__":
+    main()
