@@ -1,78 +1,133 @@
-# Evaluador de Madurez en Industria 4.0 con IA para PyMEs Ecuatorianas
+# Evaluador de Madurez Industria 4.0 para PyMEs Ecuatorianas
 
-**Prototipo final - Trabajo de Titulación**
+**Prototipo Final - Trabajo de Titulación**
 
-## Descripción del Problema y Solución
+## Descripción del Proyecto
 
-Las PyMEs ecuatorianas enfrentan dificultades para evaluar su nivel de madurez en **Industria 4.0** (dimensiones: Tecnología, Producto y Cliente) y definir un roadmap accionable.
-
-**Solución:**  
-Un pipeline de IA que combina:
-- **Random Forest Classifier** → Predice niveles de madurez (Inicial / Moderado / Medio / Avanzado) a partir de 13 preguntas.
-- **Interpretive Structural Modeling (ISM)** → Genera hoja de ruta jerárquica personalizada con drivers prioritarios.
-- **Recomendaciones focalizadas** por dimensión y nivel.
-
-El sistema entrega **diagnóstico + roadmap** en segundos.
-
-## Características principales
-- Predicción en 3 dimensiones + nivel final ponderado
-- Hoja de ruta ISM con variables driver
-- Recomendaciones accionables
-- Métricas de validación: Macro F1 entre 0.71 y 0.84 (según dimensión)
-
-## Pipeline del Sistema
-1. Respuestas del cuestionario (13 preguntas Likert 1-4)
-2. Preprocesamiento y vector de características
-3. Predicción con 3 modelos Random Forest + nivel final
-4. Generación de hoja de ruta ISM + recomendaciones
-
-## Requisitos técnicos
-- Python 3.9+
-- Ver `requirements.txt`
-
-pip install -r requirements.txt
-
-## Instalación y Ejecución
-
-1. Clona o descarga el repositorio (o accede a la carpeta en Google Drive).
-2. Instala las dependencias:
-pip install -r requirements.txt
-3. Ejecuta el prototipo:
-python main.py
-
-##Estructura del proyecto
-
-main.py → Script principal
-
-rf_madurez.py → Módulo de predicción
-
-MODELS/ → Modelos entrenados (.joblib)
-
-NOTEBOOKS/ → Notebooks de desarrollo y validación
-
-DATA/ → Datasets
-
-OUTPUTS/ → Resultados y capturas
+Este sistema permite evaluar el nivel de madurez en **Industria 4.0** de una PyME ecuatoriana mediante 13 preguntas distribuidas en tres dimensiones clave: **Tecnología**, **Producto** y 
+El prototipo combina técnicas de inteligencia artificial para entregar un diagnóstico preciso y una hoja de ruta accionable.
 
 
-##Uso de ejemplo
-```bash
-from rf_madurez import rf_predict
+### Objetivo
+Proporcionar a las PyMEs ecuatorianas un diagnóstico rápido, interpretable y accionable para guiar su transformación digital hacia la Industria 4.0.
 
-answers = {
-    'A.1.1': 3, 'A.1.2': 2, ...,  # tus 13 respuestas
-}
+### Pipeline del Sistema
 
-resultado = rf_predict(answers)
-print(resultado)
+```mermaid
+graph TD
+    A[Datos de PyMEs<br>13 preguntas] 
+    --> B[Random Forest Classifier]
+    B --> C[Predicción de niveles<br>1-4 por dimensión]
+    C --> D[Clustering<br>Agrupación de PyMEs con perfiles similares]
+    D --> E[ISM - Interpretive Structural Modeling]
+    E --> F[Hoja de Ruta Personalizada<br>+ Recomendaciones por cluster]
 ```
-## Validación del modelo
 
-Modelos entrenados con RandomForest (n_estimators=500, balanced)
-Métricas detalladas en notebooks/Classifier_v2_2_ONLY_CLASSIFIER.ipynb
-Evidencias de pruebas en carpeta outputs/
+## Flujo principal:
 
-Autores:
+Random Forest → Predice el nivel de madurez (Inicial, Moderado, Medio, Avanzado) en cada dimensión y calcula un nivel final ponderado.
+
+Clustering → Agrupa las PyMEs según su perfil de madurez similar (para generar recomendaciones más precisas por grupo).
+
+ISM (Interpretive Structural Modeling) → Genera una hoja de ruta jerárquica con prioridades, niveles recomendados y variables driver (las más influyentes para avanzar).
+
+## Características Principales
+
+- Diagnóstico rápido y reproducible
+- Nivel final ponderado (40% Tecnología + 35% Producto + 25% Cliente)
+- Agrupación mediante Clustering de PyMEs con perfiles similares
+- Hoja de ruta ISM con niveles jerárquicos y drivers clave
+- Generación automática de reporte PDF profesional
+- Interfaz simple por consola
+- Resultados guardados en carpeta `OUTPUTS/`
+- Código modular, limpio y reproducible
+
+
+## Estructura del Proyecto
+```text
+1_TESIS_IA_UDLA/
+├── main.py                          # Script principal
+├── rf_madurez.py                    # Modelo Random Forest
+├── ism_roadmap.py                   # Módulo ISM + generación de PDF
+├── MODELS/
+│   └── rf_madurez_models.joblib     # Modelo entrenado
+├── OUTPUTS/                         # Resultados generados (CSV y PDF)
+├── NOTEBOOKS/
+│   └── Recomendacion.ipynb          # Clustering, desarrollo y validación
+├── docs/
+│   └── README.md
+├── requirements.txt
+└── README.md
+```
+
+## Requisitos Técnicos
+
+- Python 3.10+
+- Google Colab (recomendado) o entorno local
+
+## Dependencias (`requirements.txt`)
+
+```bash
+pandas>=2.1.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+joblib>=1.3.2
+matplotlib>=3.7.0
+networkx>=3.1
+```
+# Instrucciones de Ejecución
+## En Google Colab (Recomendado)
+1. Abre el proyecto en Google Colab
+2. Monta tu Google Drive
+3. Ejecuta el siguiente comando en una celda:
+```bash
+!python main.py
+```
+4. Elige una opción:
+- 1 → Ingresar respuestas manualmente
+- 2 → Usar ejemplo de prueba
+
+## En entorno local
+```bash
+pip install -r requirements.txt
+python main.py
+```
+## Salida del Sistema
+Al finalizar la ejecución se genera automáticamente:
+
+Consola: Resultados de madurez + hoja de ruta textual
+
+Archivos en OUTPUTS/:
+
+diagnostico_YYYYMMDD_HHMMSS.csv
+
+diagnostico_YYYYMMDD_HHMMSS.pdf ← Reporte completo con gráficos ISM y recomendaciones
+
+
+## Tecnologías Utilizadas
+
+- Machine Learning: Random Forest (scikit-learn)
+- Clustering: Agrupación de PyMEs por perfil de madurez
+- Modelado Estructural: Interpretive Structural Modeling (ISM)
+- Visualización: Matplotlib + NetworkX
+- Reportes: PDF profesional
+
+## Validación Técnica
+
+- Modelo entrenado con 276 respuestas reales de PyMEs
+- Validación cruzada y métricas de desempeño disponibles en NOTEBOOKS/
+- ISM implementado con matriz SSIM → IRM → FRM → Level Partitioning
+
+
+## Autores:
 José Toscano
+
 Sylvia Novillo
+
 Pablo Novillo
+
+Trabajo de Titulación - Ingeniería en Inteligencia Artificial
+
+Universidad de las Américas (UDLA)
+
+Quito, Ecuador - 2026
