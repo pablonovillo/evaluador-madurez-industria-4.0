@@ -5,7 +5,7 @@ Novillo Villegas Sylvia
 Novillo Villegas Pablo  
 Toscano Romero José  
 
-**Carrera:** Ingeniería en Inteligencia Artificial  
+**Carrera:** Maestría en Inteligencia Artificial  
 **Universidad:** Universidad de las Américas (UDLA)  
 **Fecha:** Abril 2026
 
