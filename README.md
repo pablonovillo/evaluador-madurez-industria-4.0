@@ -115,7 +115,7 @@ Sylvia Novillo
 
 Pablo Novillo
 
-Trabajo de Titulación - Ingeniería en Inteligencia Artificial
+Trabajo de Titulación - Maestría en Inteligencia Artificial
 
 Universidad de las Américas (UDLA)
 
