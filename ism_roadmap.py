@@ -416,7 +416,10 @@ def generar_recomendacion_dinamica(pyme_name, current_levels):
 
 
 # ==================== FUNCIÓN PRINCIPAL ====================
-def generar_roadmaps_completos_con_estado(pyme_name, current_levels):
+def generar_roadmaps_completos_con_estado(pyme_name, current_levels, cluster_info=None):
+    """
+    cluster_info: tupla (cluster_id, cluster_nombre)  Ejemplo: (2, "Intermedios Equilibrados")
+    """
     print("\n" + "="*95)
     print("📋 HOJA DE RUTA ISM + DIAGRAMAS JERÁRQUICOS")
     print("="*95)
@@ -425,24 +428,24 @@ def generar_roadmaps_completos_con_estado(pyme_name, current_levels):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     pdf_path = os.path.join("OUTPUTS", f"diagnostico_{timestamp}.pdf")
 
-    # Mapa de niveles (igual que en rf_madurez.py)
+    # Mapa de niveles
     level_map = {1: "Inicial", 2: "Moderado", 3: "Medio", 4: "Avanzado"}
 
     with PdfPages(pdf_path) as pdf:
         # =============================================
-        # PÁGINA 1: Resultados Random Forest (CORREGIDO)
+        # PÁGINA 1: Resultados Random Forest + CLUSTER (ACTUALIZADA)
         # =============================================
-        fig = plt.figure(figsize=(12, 8))
+        fig = plt.figure(figsize=(12, 9))   # Un poco más alta para incluir el cluster
         plt.axis('off')
         
-        plt.text(0.5, 0.90, "EVALUADOR DE MADUREZ INDUSTRIA 4.0", 
+        plt.text(0.5, 0.92, "EVALUADOR DE MADUREZ INDUSTRIA 4.0", 
                  ha='center', fontsize=18, fontweight='bold')
-        plt.text(0.5, 0.83, "Random Forest + ISM Roadmap", 
-                 ha='center', fontsize=14)
-        plt.text(0.5, 0.76, f"PyME: {pyme_name}", 
+        plt.text(0.5, 0.86, "Random Forest + ISM Roadmap + Clustering", 
+                 ha='center', fontsize=14, style='italic')
+        plt.text(0.5, 0.80, f"PyME: {pyme_name}", 
                  ha='center', fontsize=12, fontweight='bold')
 
-        # Calcular niveles correctamente
+        # Calcular niveles
         tech_lvl   = current_levels.get('Tecnologia', 2)
         prod_lvl   = current_levels.get('Producto', 2)
         client_lvl = current_levels.get('Cliente', 2)
@@ -450,6 +453,7 @@ def generar_roadmaps_completos_con_estado(pyme_name, current_levels):
         final_num = round(0.4 * tech_lvl + 0.35 * prod_lvl + 0.25 * client_lvl)
         final_num = max(1, min(4, final_num))
 
+        # === TEXTO DE RESULTADOS ===
         rf_text = f"""RESULTADOS DE MADUREZ
 =====================================================================================
 TECNOLOGIA      → Nivel {tech_lvl} | {level_map[tech_lvl]}
@@ -458,9 +462,28 @@ CLIENTE         → Nivel {client_lvl} | {level_map[client_lvl]}
 NIVEL FINAL     → Nivel {final_num} | {level_map[final_num]}   ← Madurez general
 ====================================================================================="""
 
-        plt.text(0.5, 0.52, rf_text, ha='center', va='center', 
+        plt.text(0.5, 0.58, rf_text, ha='center', va='center', 
                  fontsize=11, fontfamily='monospace')
-        
+
+        # === MOSTRAR INFORMACIÓN DEL CLÚSTER ===
+        if cluster_info and len(cluster_info) == 2:
+            cluster_id, cluster_nombre = cluster_info
+            cluster_text = f"""ANÁLISIS POR CLÚSTER
+=====================================================================================
+Esta PyME pertenece al clúster:
+
+       → {cluster_nombre}
+          (Cluster {cluster_id})
+
+Este grupo representa PyMEs con características similares en su nivel 
+de madurez Industria 4.0.
+====================================================================================="""
+            plt.text(0.5, 0.32, cluster_text, ha='center', va='center', 
+                     fontsize=10.5, fontfamily='monospace')
+        else:
+            plt.text(0.5, 0.32, "ANÁLISIS POR CLÚSTER: No disponible", 
+                     ha='center', fontsize=10, color='gray')
+
         pdf.savefig(fig, bbox_inches='tight')
         plt.close(fig)
 
@@ -489,7 +512,7 @@ NIVEL FINAL     → Nivel {final_num} | {level_map[final_num]}   ← Madurez gen
             plt.close(fig)
 
         # =============================================
-        # PÁGINA FINAL: HOJA DE RUTA TEXTUAL
+        # PÁGINA FINAL: HOJA DE RUTA TEXTUAL (sin cambios)
         # =============================================
         fig = plt.figure(figsize=(20, 32))
         ax = fig.add_axes([0.06, 0.04, 0.88, 0.92])
@@ -515,10 +538,9 @@ NIVEL FINAL     → Nivel {final_num} | {level_map[final_num]}   ← Madurez gen
             y -= 0.01
 
             for lvl_num in sorted(levels.keys()):
-                if lvl_num < current_lvl:
-                    continue
+                if lvl_num < current_lvl: continue
                 if lvl_num == current_lvl:
-                    priority = "🟢 PRIORIDAD ALTA - NIVEL ACTUAL (enfocarse aquí primero)"
+                    priority = "🟢 PRIORIDAD ALTA - NIVEL ACTUAL"
                 elif lvl_num == current_lvl + 1:
                     priority = "🟠 SIGUIENTE NIVEL (objetivo inmediato)"
                 else:
@@ -543,12 +565,11 @@ NIVEL FINAL     → Nivel {final_num} | {level_map[final_num]}   ← Madurez gen
             y -= 0.01
             for code in driving.index:
                 desc = var_descriptors.get(code, code)[:118]
-                if len(desc) == 118: 
-                    desc += "..."
+                if len(desc) == 118: desc += "..."
                 plt.text(0.06, y, f"{code} → {desc}", fontsize=10)
                 y -= 0.01
 
-            y -= 0.02   # Espacio entre dimensiones
+            y -= 0.02
 
         # Consejo final
         consejo = """Consejo: Enfócate primero en completar el **Nivel actual** de cada dimensión.
@@ -566,7 +587,5 @@ Las variables DRIVER son las que más impacto tienen para avanzar."""
 
     print(f"\n✅ Reporte PDF completo guardado en:")
     print(f"   {pdf_path}")
-    print("   (Incluye Resultados RF + 3 Diagramas ISM + Hoja de Ruta completa)")
 
-    # Mostrar recomendación en consola
     generar_recomendacion_dinamica(pyme_name, current_levels)
