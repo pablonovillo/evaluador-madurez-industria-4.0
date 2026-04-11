@@ -425,28 +425,48 @@ def generar_roadmaps_completos_con_estado(pyme_name, current_levels):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     pdf_path = os.path.join("OUTPUTS", f"diagnostico_{timestamp}.pdf")
 
+    # Mapa de niveles (igual que en rf_madurez.py)
+    level_map = {1: "Inicial", 2: "Moderado", 3: "Medio", 4: "Avanzado"}
+
     with PdfPages(pdf_path) as pdf:
-        # Página 1: Resultados Random Forest
+        # =============================================
+        # PÁGINA 1: Resultados Random Forest (CORREGIDO)
+        # =============================================
         fig = plt.figure(figsize=(12, 8))
         plt.axis('off')
-        plt.text(0.5, 0.90, "EVALUADOR DE MADUREZ INDUSTRIA 4.0", ha='center', fontsize=18, fontweight='bold')
-        plt.text(0.5, 0.83, "Random Forest + ISM Roadmap", ha='center', fontsize=14)
-        plt.text(0.5, 0.76, f"PyME: {pyme_name}", ha='center', fontsize=12, fontweight='bold')
+        
+        plt.text(0.5, 0.90, "EVALUADOR DE MADUREZ INDUSTRIA 4.0", 
+                 ha='center', fontsize=18, fontweight='bold')
+        plt.text(0.5, 0.83, "Random Forest + ISM Roadmap", 
+                 ha='center', fontsize=14)
+        plt.text(0.5, 0.76, f"PyME: {pyme_name}", 
+                 ha='center', fontsize=12, fontweight='bold')
+
+        # Calcular niveles correctamente
+        tech_lvl   = current_levels.get('Tecnologia', 2)
+        prod_lvl   = current_levels.get('Producto', 2)
+        client_lvl = current_levels.get('Cliente', 2)
+        
+        final_num = round(0.4 * tech_lvl + 0.35 * prod_lvl + 0.25 * client_lvl)
+        final_num = max(1, min(4, final_num))
 
         rf_text = f"""RESULTADOS DE MADUREZ
 =====================================================================================
-TECNOLOGIA      → Nivel {current_levels.get('Tecnologia', 2)} | Medio
-PRODUCTO        → Nivel {current_levels.get('Producto', 2)} | Moderado
-CLIENTE         → Nivel {current_levels.get('Cliente', 2)} | Moderado
-NIVEL FINAL     → Nivel {round(0.4*current_levels.get('Tecnologia',2) + 
-                               0.35*current_levels.get('Producto',2) + 
-                               0.25*current_levels.get('Cliente',2))} | Moderado   ← Madurez general
+TECNOLOGIA      → Nivel {tech_lvl} | {level_map[tech_lvl]}
+PRODUCTO        → Nivel {prod_lvl} | {level_map[prod_lvl]}
+CLIENTE         → Nivel {client_lvl} | {level_map[client_lvl]}
+NIVEL FINAL     → Nivel {final_num} | {level_map[final_num]}   ← Madurez general
 ====================================================================================="""
-        plt.text(0.5, 0.52, rf_text, ha='center', va='center', fontsize=11, fontfamily='monospace')
-        pdf.savefig(fig, bbox_inches='tight')
-        plt.close()
 
-        # Páginas 2-4: Los 3 diagramas ISM (sin cambios)
+        plt.text(0.5, 0.52, rf_text, ha='center', va='center', 
+                 fontsize=11, fontfamily='monospace')
+        
+        pdf.savefig(fig, bbox_inches='tight')
+        plt.close(fig)
+
+        # =============================================
+        # PÁGINAS 2-4: Diagramas ISM (sin cambios)
+        # =============================================
         dimension_map = {
             'Tecnologia': ("Tecnología", roadmap_tec),
             'Producto':   ("Producto", roadmap_prod),
@@ -468,9 +488,10 @@ NIVEL FINAL     → Nivel {round(0.4*current_levels.get('Tecnologia',2) +
             pdf.savefig(fig, bbox_inches='tight')
             plt.close(fig)
 
-
-# ====================== PÁGINA FINAL: HOJA DE RUTA TEXTUAL (versión compacta) ======================
-        fig = plt.figure(figsize=(20, 32))          # ← Más alta para que quepa todo
+        # =============================================
+        # PÁGINA FINAL: HOJA DE RUTA TEXTUAL
+        # =============================================
+        fig = plt.figure(figsize=(20, 32))
         ax = fig.add_axes([0.06, 0.04, 0.88, 0.92])
         ax.axis('off')
 
@@ -480,7 +501,8 @@ NIVEL FINAL     → Nivel {round(0.4*current_levels.get('Tecnologia',2) +
         y -= 0.01
 
         for dim_name in ['Tecnologia', 'Producto', 'Cliente']:
-            plt.text(0.02, y, f"DIMENSIÓN: {dim_name.upper()}", fontsize=13.5, fontweight='bold')
+            plt.text(0.02, y, f"DIMENSIÓN: {dim_name.upper()}", 
+                     fontsize=13.5, fontweight='bold')
             y -= 0.01
 
             roadmap_data = {'Tecnologia': roadmap_tec, 'Producto': roadmap_prod, 'Cliente': roadmap_cli}[dim_name]
@@ -493,7 +515,8 @@ NIVEL FINAL     → Nivel {round(0.4*current_levels.get('Tecnologia',2) +
             y -= 0.01
 
             for lvl_num in sorted(levels.keys()):
-                if lvl_num < current_lvl: continue
+                if lvl_num < current_lvl:
+                    continue
                 if lvl_num == current_lvl:
                     priority = "🟢 PRIORIDAD ALTA - NIVEL ACTUAL (enfocarse aquí primero)"
                 elif lvl_num == current_lvl + 1:
@@ -501,14 +524,15 @@ NIVEL FINAL     → Nivel {round(0.4*current_levels.get('Tecnologia',2) +
                 else:
                     break
 
-                plt.text(0.02, y, f"NIVEL {lvl_num} → {priority}", fontsize=10.8, fontweight='bold')
+                plt.text(0.02, y, f"NIVEL {lvl_num} → {priority}", 
+                         fontsize=10.8, fontweight='bold')
                 y -= 0.01
 
                 for code in levels[lvl_num]:
                     desc = var_descriptors.get(code, code)
                     short_desc = desc if len(desc) <= 135 else desc[:132] + "..."
                     plt.text(0.06, y, f"• {code}: {short_desc}", fontsize=10)
-                    y -= 0.016      # ← Espaciado muy reducido
+                    y -= 0.016
 
                 y -= 0.008
 
@@ -519,20 +543,23 @@ NIVEL FINAL     → Nivel {round(0.4*current_levels.get('Tecnologia',2) +
             y -= 0.01
             for code in driving.index:
                 desc = var_descriptors.get(code, code)[:118]
-                if len(desc) == 118: desc += "..."
+                if len(desc) == 118: 
+                    desc += "..."
                 plt.text(0.06, y, f"{code} → {desc}", fontsize=10)
                 y -= 0.01
 
             y -= 0.02   # Espacio entre dimensiones
 
-        # Consejo final (en caja y bien separado)
+        # Consejo final
         consejo = """Consejo: Enfócate primero en completar el **Nivel actual** de cada dimensión.
 Las variables DRIVER son las que más impacto tienen para avanzar."""
 
         plt.text(0.02, 0.11, consejo, fontsize=11.5, style='italic',
-                 bbox=dict(boxstyle="round,pad=1", facecolor="#f0f4f8", edgecolor="#2c3e50", linewidth=1.2))
+                 bbox=dict(boxstyle="round,pad=1", facecolor="#f0f4f8", 
+                           edgecolor="#2c3e50", linewidth=1.2))
 
-        plt.text(0.02, 0.05, f"Reporte generado: {timestamp}", fontsize=9, color='gray')
+        plt.text(0.02, 0.05, f"Reporte generado: {timestamp}", 
+                 fontsize=9, color='gray')
 
         pdf.savefig(fig, bbox_inches='tight')
         plt.close()
@@ -541,4 +568,5 @@ Las variables DRIVER son las que más impacto tienen para avanzar."""
     print(f"   {pdf_path}")
     print("   (Incluye Resultados RF + 3 Diagramas ISM + Hoja de Ruta completa)")
 
+    # Mostrar recomendación en consola
     generar_recomendacion_dinamica(pyme_name, current_levels)
