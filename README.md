@@ -23,7 +23,12 @@ graph TD
 ## Flujo principal:
 
 1. Random Forest → Predice el nivel de madurez en cada dimensión y calcula un nivel final ponderado (40% Tecnología + 35% Producto + 25% Cliente).
-2. Clustering → Agrupa las PyMEs según su perfil de madurez similar para ofrecer recomendaciones más precisas por grupo.
+2. Clustering → Agrupa las PyMEs según su perfil de madurez en 5 clusters con nombres descriptivos:
+- Básicos con Déficit Tecnológico
+- Intermedios con Fuerte Producto
+- Intermedios Equilibrados
+- Orientados al Cliente
+- Iniciales / Estancados
 3. ISM (Interpretive Structural Modeling) → Genera una hoja de ruta jerárquica con niveles recomendados, prioridades y variables driver (las más influyentes para avanzar).
 
 ## Objetivo
@@ -32,7 +37,7 @@ Proporcionar a las PyMEs ecuatorianas un diagnóstico rápido, interpretable y a
 ## Características Principales
 
 - Predicción de madurez por dimensión y nivel global ponderado
-- Agrupación de PyMEs mediante Clustering
+- Análisis por Clúster con nombre descriptivo
 - Hoja de ruta ISM con niveles jerárquicos y drivers clave
 - Generación automática de reporte PDF profesional (resultados + gráficos + recomendaciones)
 - Interfaz simple por consola
@@ -44,11 +49,11 @@ Estructura del Proyecto
 ├── main.py                          # Script principal
 ├── rf_madurez.py                    # Modelo Random Forest
 ├── ism_roadmap.py                   # Módulo ISM + generación de PDF
+├── clustering_utils.py              # Carga y predicción de clúster
 ├── MODELS/
-│   └── rf_madurez_models.joblib     # Modelo entrenado
+│   └── rf_madurez_models.joblib     # Modelo Random Forest
+│   └── clustering_model.joblib      # Modelo KMeans + Scaler
 ├── OUTPUTS/                         # Resultados generados (CSV y PDF)
-├── NOTEBOOKS/
-│   └── Recomendacion.ipynb          # Clustering, desarrollo y validación
 ├── requirements.txt
 └── README.md
 ```
@@ -87,25 +92,60 @@ python main.py
 ```
 ## Salida del Sistema
 Al ejecutar el prototipo se genera automáticamente:
-- Consola: Resultados de madurez + hoja de ruta textual
-- Archivos en carpeta OUTPUTS/:
+- Consola:
+    - Resultados de madurez (Random Forest)
+    - Nombre del clúster al que pertenece la PyME
+    - Hoja de ruta textual ISM
+- Archivos en generados en carpeta OUTPUTS/:
     - diagnostico_YYYYMMDD_HHMMSS.csv
     - diagnostico_YYYYMMDD_HHMMSS.pdf ← Reporte completo con gráficos ISM y recomendaciones
+        - Portada con resultados RF
+        - Análisis por Clúster (nuevo)
+        - 3 Diagramas ISM jerárquicos
+        - Hoja de ruta detallada con recomendaciones
 
 
 ## Tecnologías Utilizadas
 
-- Machine Learning: Random Forest (scikit-learn)
-- Clustering: Agrupación de PyMEs por perfil de madurez
-- Modelado Estructural: Interpretive Structural Modeling (ISM)
-- Visualización: Matplotlib + NetworkX
-- Reportes: PDF profesional
+Machine Learning: Random Forest (scikit-learn)
+Clustering: KMeans + StandardScaler (5 clusters)
+Modelado Estructural: Interpretive Structural Modeling (ISM)
+Visualización: Matplotlib + NetworkX
+Reportes: PDF con matplotlib.backends.backend_pdf
+
+## Clusters Definidos
+
+El sistema agrupa las PyMEs en **5 clusters** según su perfil de madurez:
+
+| Cluster ID | Nombre del Clúster                        | Característica principal                          |
+|------------|-------------------------------------------|---------------------------------------------------|
+| 0          | Básicos con Déficit Tecnológico           | Bajo nivel en Tecnología                          |
+| 1          | Intermedios con Fuerte Producto           | Fuerte en la dimensión Producto                   |
+| 2          | Intermedios Equilibrados                  | Niveles intermedios y balanceados                 |
+| 3          | Orientados al Cliente                     | Mejor desempeño en la dimensión Cliente           |
+| 4          | Iniciales / Estancados                    | Niveles bajos en las tres dimensiones             |
+
 
 ## Validación Técnica
-- Modelo entrenado con 276 respuestas reales de PyMEs ecuatorianas
-- Validación cruzada y métricas de desempeño disponibles en NOTEBOOKS/Recomendacion.ipynb
-- ISM implementado con matriz SSIM → IRM → FRM → Level Partitioning
-- Clustering aplicado para agrupar perfiles similares
+
+### Random Forest
+- Se entrenó y evaluó utilizando **validación cruzada**.
+- Métrica principal: **Macro F1-score** (elegida por el desbalanceo entre clases).
+- Otras métricas: Weighted F1-score y Accuracy.
+- Se analizó la **matriz de confusión** para revisar errores de clasificación entre niveles.
+
+### Clustering (KMeans)
+- Se aplicó KMeans con 5 clusters sobre los niveles predichos de las tres dimensiones.
+- Se evaluó la calidad del clustering mediante:
+  - Silhouette Score
+  - Davies-Bouldin Index
+  - Calinski-Harabasz Index
+
+### ISM (Interpretive Structural Modeling)
+- Implementado con la metodología estándar: SSIM → Initial Reachability Matrix → Final Reachability Matrix → Level Partitioning.
+- Generación de diagramas jerárquicos y hoja de ruta con variables driver.
+
+Todo el pipeline fue validado con **276 respuestas reales** de PyMEs ecuatorianas.
 
 
 ## Autores:
