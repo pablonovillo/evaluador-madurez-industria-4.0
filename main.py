@@ -5,7 +5,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
 from rf_madurez import rf_predict
-from ism_roadmap import generar_roadmaps_completos
+from ism_roadmap import generar_roadmaps_completos_con_estado
 
 print("=" * 95)
 print("   EVALUADOR DE MADUREZ INDUSTRIA 4.0 PARA PyMEs ECUATORIANAS")
@@ -30,22 +30,48 @@ def main():
     print(f"\nAnalizando: **{nombre}**")
     print("🔄 Procesando diagnóstico completo...\n")
 
-    # Predicción Random Forest
+    # === RESULTADOS RANDOM FOREST ===
     resultado = rf_predict(answers)
 
-    # Mostrar resultados
     print("\n" + "=" * 85)
-    print("📊 RESULTADOS DE MADUREZ - RANDOM FOREST")
-    print("=" * 85)
-    for dim, (nivel_num, nivel_texto) in resultado.items():
-        if dim == "Nivel_Final":
-            print(f"NIVEL FINAL     → Nivel {nivel_num} | {nivel_texto}   ← Madurez general ponderada")
-        else:
-            print(f"{dim.upper():<15} → Nivel {nivel_num} | {nivel_texto}")
+    print("📊 RESULTADOS DE MADUREZ (Random Forest)")
     print("=" * 85)
 
-    # Hoja de Ruta ISM
-    generar_roadmaps_completos()
+    current_levels = {}
+    for dim, (nivel_num, nivel_texto) in resultado.items():
+        if dim != "Nivel_Final":
+            current_levels[dim] = nivel_num
+            print(f"{dim.upper():<15} → Nivel {nivel_num} | {nivel_texto}")
+        else:
+            print(f"NIVEL FINAL     → Nivel {nivel_num} | {nivel_texto}   ← Madurez general")
+
+    print("=" * 85)
+
+    # ====================== CLUSTERING ======================
+    from clustering_utils import load_clustering_model, predict_cluster
+    
+    try:
+        clustering_model = load_clustering_model()
+        cluster_id, cluster_nombre = predict_cluster(resultado, clustering_model)
+        
+        print("\n" + "=" * 85)
+        print("📌 ANÁLISIS POR CLÚSTER")
+        print("=" * 85)
+        print(f"Esta PyME pertenece al clúster:")
+        print(f"   → **{cluster_nombre}**  (Cluster {cluster_id})")
+        print("=" * 85)
+        
+    except Exception as e:
+        print(f"\n⚠️  No se pudo cargar el modelo de clustering: {e}")
+        print("   (Ejecuta el entrenamiento una vez para crear el modelo)")
+    # =====================================================================
+
+    # === HOJA DE RUTA ISM + GRÁFICOS + RECOMENDACIÓN ===
+    cluster_id, cluster_nombre = predict_cluster(resultado, clustering_model)
+    cluster_info = (cluster_id, cluster_nombre)
+
+    # Llamada actualizada
+    generar_roadmaps_completos_con_estado(nombre, current_levels, cluster_info=cluster_info)
 
     # Guardar resultado
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
