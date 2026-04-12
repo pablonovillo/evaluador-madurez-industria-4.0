@@ -106,11 +106,15 @@ Al ejecutar el prototipo se genera automáticamente:
 
 ## Tecnologías Utilizadas
 
-Machine Learning: Random Forest (scikit-learn)
-Clustering: KMeans + StandardScaler (5 clusters)
-Modelado Estructural: Interpretive Structural Modeling (ISM)
-Visualización: Matplotlib + NetworkX
-Reportes: PDF con matplotlib.backends.backend_pdf
+**Machine Learning:**
+- **Random Forest** (scikit-learn)
+- **Clustering:** KMeans + StandardScaler (5 clusters)
+  
+**Modelado Estructural:** Interpretive Structural Modeling (ISM)
+
+**Visualización:** Matplotlib + NetworkX
+
+**Reportes:** PDF con matplotlib.backends.backend_pdf
 
 ## Clusters Definidos
 
