@@ -22,14 +22,14 @@ graph TD
 
 ## Flujo principal:
 
-1. Random Forest → Predice el nivel de madurez en cada dimensión y calcula un nivel final ponderado (40% Tecnología + 35% Producto + 25% Cliente).
-2. Clustering → Agrupa las PyMEs según su perfil de madurez en 5 clusters con nombres descriptivos:
+1. **Random Forest** → Predice el nivel de madurez en cada dimensión y calcula un nivel final ponderado (40% Tecnología + 35% Producto + 25% Cliente).
+2. **Clustering** → Agrupa las PyMEs según su perfil de madurez en 5 clusters con nombres descriptivos:
 - Básicos con Déficit Tecnológico
 - Intermedios con Fuerte Producto
 - Intermedios Equilibrados
 - Orientados al Cliente
 - Iniciales / Estancados
-3. ISM (Interpretive Structural Modeling) → Genera una hoja de ruta jerárquica con niveles recomendados, prioridades y variables driver (las más influyentes para avanzar).
+3. **ISM (Interpretive Structural Modeling)** → Genera una hoja de ruta jerárquica con niveles recomendados, prioridades y variables driver (las más influyentes para avanzar).
 
 ## Objetivo
 Proporcionar a las PyMEs ecuatorianas un diagnóstico rápido, interpretable y accionable para guiar su transformación digital hacia la Industria 4.0.
