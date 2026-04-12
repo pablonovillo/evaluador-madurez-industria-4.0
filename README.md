@@ -51,7 +51,6 @@ Estructura del Proyecto
 ├── ism_roadmap.py                   # Módulo ISM + generación de PDF
 ├── clustering_utils.py              # Carga y predicción de clúster
 ├── MODELS/
-│   └── rf_madurez_models.joblib     # Modelo Random Forest
 │   └── clustering_model.joblib      # Modelo KMeans + Scaler
 ├── OUTPUTS/                         # Resultados generados (CSV y PDF)
 ├── requirements.txt
